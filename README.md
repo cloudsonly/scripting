@@ -1,4 +1,4 @@
-# cloudsonly / scripting
+# Scripting
 
 [Scripting](https://scriptingapp.github.io/) App 脚本合集。每个子目录都是一个独立的源码项目，可直接在 Scripting 中导入运行；同名 `.scripting` 文件保留为兼容安装包。
 
@@ -6,19 +6,12 @@
 
 | 脚本 | 说明 | 源码 |
 | --- | --- | --- |
-| [EmbyLibraryKit](EmbyLibraryKit/) | 媒体库管理、开通通知解析与 Rex / Forward / SenPlayer / Vidora / EplayerX 批量导入 | [源码](EmbyLibraryKit/) |
-| [AgentRouter签到](AgentRouter签到/) | 多账号签到、日志核验、余额与桌面小组件 | [源码](AgentRouter签到/) |
-| 媒体库导入助手 | 识别导入链接、订阅 JSON 与开通通知并批量导入 | [源码](媒体库导入助手/) |
+| [EmbyLibraryKit](EmbyLibraryKit/) | 媒体库管理、开通通知解析与 Rex / Forward / SenPlayer / Vidora / EplayerX 批量导入 |
+| [AgentRouter签到](AgentRouter签到/) | 多账号签到、日志核验、余额与桌面小组件 |
 
 ## 安装
 
-在 [Scripting App](https://scriptingapp.github.io/) 中打开对应源码目录即可导入运行：
-
-- 
-- [AgentRouter签到](AgentRouter签到/)
-- [媒体库导入助手](媒体库导入助手/)
-
-兼容旧版安装流程的 `.scripting` 包也暂时保留在仓库根目录。
+在 Scripting App 中导入运行
 
 ## 开发约定
 
