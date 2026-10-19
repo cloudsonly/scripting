@@ -1,6 +1,6 @@
 # Scripting
 
-[Scripting](https://scriptingapp.github.io/) App 脚本合集。每个子目录都是一个独立的源码项目，可直接在 Scripting 中导入运行；同名 `.scripting` 文件保留为兼容安装包。
+[Scripting](https://scriptingapp.github.io/) App 脚本合集。每个子目录都是一个独立的源码项目，可直接在 Scripting 中导入运行。
 
 ## 脚本
 
@@ -8,10 +8,6 @@
 | --- | --- | --- |
 | [EmbyLibraryKit](EmbyLibraryKit/) | 媒体库管理、开通通知解析与 Rex / Forward / SenPlayer / Vidora / EplayerX 批量导入 |
 | [AgentRouter签到](AgentRouter签到/) | 多账号签到、日志核验、余额与桌面小组件 |
-
-## 安装
-
-在 Scripting App 中导入运行
 
 ## 开发约定
 
@@ -30,14 +26,4 @@ scripting-ts project "脚本名称" --check
 
 ## 安全
 
-源码中不写入 Token、密码、Cookie 或个人账号。凭据使用系统 Keychain，本地数据使用脚本私有 Storage；README 示例使用 `example.com`、`test`、`123456`。
-
-## 发布
-
-发布时从同一份源码同时更新：
-
-1. GitHub 源码目录；
-2. 同名 `.scripting` 兼容安装包；
-3. 脚本目录中的 `script.json` 与版本说明。
-
-这样既方便网页审查和协作，也兼容旧版 Scripting 导入方式。
+源码中不写入 Token、密码、Cookie 或个人账号。凭据使用系统 Keychain，本地数据使用脚本私有 Storage。
