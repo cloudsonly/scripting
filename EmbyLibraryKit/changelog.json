@@ -1,0 +1,19 @@
+{
+  "version": "2.8.20",
+  "note": "修复：『服务器地址 / 端 口 / 体验账号 / 初始密码』这类兑换通知识别不到主机和密码",
+  "publishId": "p1792151912468-36902",
+  "notifyAuthor": false,
+  "scriptAuthor": "cloudsonly",
+  "folderName": "EmbyLibraryKit",
+  "scriptName": "EmbyLibraryKit",
+  "history": [
+    {
+      "version": "2.8.20",
+      "note": "修复：『服务器地址 / 端 口 / 体验账号 / 初始密码』这类兑换通知识别不到主机和密码"
+    },
+    {
+      "version": "2.8.19",
+      "note": "新增：主机栏粘贴完整线路自动拆成协议、主机、端口与路径"
+    }
+  ]
+}
