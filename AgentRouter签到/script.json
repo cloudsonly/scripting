@@ -1,0 +1,30 @@
+{
+  "icon": "checkmark.seal.fill",
+  "iconImage": "",
+  "color": "rgba(10, 132, 255, 1)",
+  "name": "AgentRouter签到",
+  "localizedDescriptions": {
+    "en": "AgentRouter automatically checks in every day: login with account and password + check-in log verification + desktop widget + single-account check-in + home page balance display. Supports multiple accounts, batch import, intelligent deduplication and result notification.",
+    "zh": "AgentRouter 每日自动签到：账号密码登录 + 签到日志核验 + 桌面小组件 + 单账号签到 + 主页余额显示。支持多账号、批量导入智能去重与结果通知。"
+  },
+  "intentInputTypes": [],
+  "version": "1.2.0",
+  "permissions": null,
+  "contributors": [],
+  "description": "AgentRouter 每日自动签到（账号密码登录）。支持桌面小组件、多账号独立签到、智能多格式批量导入与去重、钥匙串安全保存密码、签到日志端到端核验与免登录余额刷新。",
+  "localizedNames": {
+    "en": "AgentRouter check-in",
+    "zh": "AgentRouter签到"
+  },
+  "entry": "index.tsx",
+  "remoteResource": {
+    "url": "https://github.com/cloudsonly/scripting/AgentRouter签到",
+    "autoUpdateInterval": 86400
+  },
+  "runInApp": false,
+  "author": {
+    "email": null,
+    "homepage": null,
+    "name": "cloudsonly"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": "1.2.0",
+  "note": "修复进入脚本自动/反复签到",
+  "publishId": "p1791540599563-43593",
+  "notifyAuthor": false,
+  "scriptAuthor": "cloudsonly",
+  "folderName": "AgentRouter签到",
+  "scriptName": "AgentRouter签到",
+  "history": [
+    {
+      "version": "1.2.0",
+      "note": "修复进入脚本自动/反复签到"
+    },
+    {
+      "version": "1.2.0",
+      "note": "新增 iOS 桌面小组件、支持单账号独立签到、批量导入智能识别多格式与去重、账号左滑删除与 Keychain 差量清理、请求网络轻量重试"
+    }
+  ]
+}
