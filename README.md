@@ -4,8 +4,8 @@
 
 ## 脚本
 
-| 脚本 | 说明 | 源码 |
-| --- | --- | --- |
+| 脚本 | 说明 |
+| --- | --- |
 | [EmbyLibraryKit](EmbyLibraryKit/) | 媒体库管理、开通通知解析与 Rex / Forward / SenPlayer / Vidora / EplayerX 批量导入 |
 | [AgentRouter签到](AgentRouter签到/) | 多账号签到、日志核验、余额与桌面小组件 |
 
