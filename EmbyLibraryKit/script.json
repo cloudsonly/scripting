@@ -1,34 +1,34 @@
 {
-  "icon" : "play.diamond.fill",
-  "color" : "rgba(43, 190, 81,1)",
-  "intentInputTypes" : [
-
-  ],
-  "remoteResource" : {
-    "autoUpdateInterval" : 3600,
-    "url" : "https:\/\/github.com\/cloudsonly\/scripting\/EmbyLibraryKit",
-    "hash" : ""
-  },
-  "runInApp" : true,
-  "entry" : "index.tsx",
-  "contributors" : [
-
-  ],
   "localizedNames" : {
     "zh" : "EmbyLibraryKit"
   },
+  "runInApp" : true,
+  "description" : "Keep a media server library with groups, then batch-import links, server JSON or an account notice into Rex \/ Forward \/ SenPlayer \/ Vidora \/ EplayerX.",
+  "intentInputTypes" : [
+
+  ],
   "version" : "2.8.20",
-  "permissions" : null,
-  "name" : "EmbyLibraryKit",
+  "author" : {
+    "homepage" : null,
+    "name" : "cloudsonly",
+    "email" : null
+  },
+  "icon" : "play.diamond.fill",
+  "remoteResource" : {
+    "hash" : "e54e075e02f6388ae1c0c45c3b9d44fc",
+    "autoUpdateInterval" : null,
+    "url" : "https:\/\/github.com\/cloudsonly\/scripting\/blob\/main\/EmbyLibraryKit"
+  },
+  "iconImage" : "",
   "localizedDescriptions" : {
     "zh" : "媒体库分组管理 + 批量导入：把导入链接、线路汇总 JSON、开通通知解析成 Rex \/ Forward \/ SenPlayer \/ Vidora \/ EplayerX 的导入，并可导入导出小幻影视（afusekt）格式。",
     "en" : "Media library group management + batch import: parse import links, line summary JSON, and activation notifications into Rex \/ Forward \/ SenPlayer \/ Vidora \/ EplayerX imports, and can import and export afusekt format."
   },
-  "author" : {
-    "name" : "cloudsonly",
-    "email" : null,
-    "homepage" : null
-  },
-  "iconImage" : "",
-  "description" : "Keep a media server library with groups, then batch-import links, server JSON or an account notice into Rex \/ Forward \/ SenPlayer \/ Vidora \/ EplayerX."
+  "entry" : "index.tsx",
+  "contributors" : [
+
+  ],
+  "permissions" : null,
+  "name" : "EmbyLibraryKit",
+  "color" : "rgba(43, 190, 81,1)"
 }

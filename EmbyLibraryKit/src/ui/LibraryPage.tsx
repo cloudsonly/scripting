@@ -12,7 +12,9 @@ import {
   Spacer,
   Text,
   VStack,
+  fetch,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "scripting"
@@ -50,6 +52,49 @@ import type { GroupNameResult } from "./GroupNameView"
 import GroupNameView from "./GroupNameView"
 import { PillButton } from "./PillButton"
 import { ACCENT_TEXT, DANGER, SUCCESS, SUCCESS_TEXT } from "./tokens"
+
+const LATENCY_SUCCESS: "#34C759" = "#34C759"
+const LATENCY_INFO: "#0A84FF" = "#0A84FF"
+const LATENCY_WARNING: "#FF9500" = "#FF9500"
+const LATENCY_DANGER: "#FF3B30" = "#FF3B30"
+const LATENCY_UNKNOWN: "secondaryLabel" = "secondaryLabel"
+
+type LatencyStatus = { label: string; color: "#34C759" | "#0A84FF" | "#FF9500" | "#FF3B30" | "secondaryLabel"; checkedAt: number }
+const latencyCache = new Map<string, LatencyStatus>()
+
+function latencyURL(address: string): string {
+  const raw = String(address || "").trim().replace(/\/+$/, "")
+  if (!raw) return ""
+  return raw
+}
+
+function latencyColor(ms: number): "#34C759" | "#0A84FF" | "#FF9500" {
+  if (ms <= 200) return LATENCY_SUCCESS
+  if (ms <= 500) return LATENCY_INFO
+  return LATENCY_WARNING
+}
+
+async function checkLatency(address: string): Promise<LatencyStatus> {
+  const url = latencyURL(address)
+  if (!url) return { label: "断联", color: LATENCY_DANGER, checkedAt: Date.now() }
+  const started = Date.now()
+  const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3500))
+  try {
+    // 先 HEAD，几乎不下载正文；不要求 2xx，401/403/404 也证明线路已经连通。
+    // 只有网络层拒绝 HEAD 时才退回 GET，避免把正常反代误判成断联。
+    try {
+      await Promise.race([fetch(url, { method: "HEAD" }), timeout])
+    } catch (headError) {
+      if (String(headError).toLowerCase().indexOf("timeout") >= 0) throw headError
+      await Promise.race([fetch(url, { method: "GET" }), timeout])
+    }
+    const ms = Math.max(1, Date.now() - started)
+    return { label: `${ms}ms`, color: latencyColor(ms), checkedAt: Date.now() }
+  } catch (error) {
+    const timedOut = String(error).toLowerCase().indexOf("timeout") >= 0
+    return { label: timedOut ? "超时" : "断联", color: LATENCY_DANGER, checkedAt: Date.now() }
+  }
+}
 import type { TagOption } from "./TagChip"
 import { TagGroup } from "./TagChip"
 import TagAssignView from "./TagAssignView"
@@ -74,6 +119,7 @@ function ServerRow(props: {
   importTitle: string
   onImport: () => void
   onDelete: () => void
+  latency?: LatencyStatus
 }) {
   const server = props.server
   const splitHost = server.address.replace(/^https?:\/\//, "")
@@ -111,9 +157,14 @@ function ServerRow(props: {
         contentShape={{ kind: "interaction", shape: "rect" }}
         onTapGesture={props.disabled ? undefined : onRowTap}
       >
-        <Text bold={true} lineLimit={1} multilineTextAlignment="leading">
-          {server.name || splitHost || "（未命名）"}
-        </Text>
+        <HStack spacing={6}>
+          <Text bold={true} lineLimit={1} multilineTextAlignment="leading" frame={{ maxWidth: "infinity", alignment: "leading" }}>
+            {server.name || splitHost || "（未命名）"}
+          </Text>
+          <Text font="caption" bold={true} foregroundStyle={props.latency ? props.latency.color : LATENCY_UNKNOWN}>
+            {props.latency ? props.latency.label : "…"}
+          </Text>
+        </HStack>
         <Text font="caption" foregroundStyle="secondaryLabel" lineLimit={1} truncationMode="middle" multilineTextAlignment="leading">
           {[
             (server.type || "emby").toUpperCase(),
@@ -157,6 +208,7 @@ export default function LibraryPage(props: {
   const dismiss = Navigation.useDismiss()
   const searching = props.mode === "search"
   const [search, setSearch] = useState("")
+  const [keyword, setKeyword] = useState("")
   const [picked, setPicked] = useState<string[]>([])
   const [selecting, setSelecting] = useState(false)
   const [openGroups, setOpenGroups] = useState<string[]>([])
@@ -170,6 +222,7 @@ export default function LibraryPage(props: {
   const [message, setMessage] = useState(props.notice || "")
   const [toastOn, setToastOn] = useState(false)
   const lastMessageRef = useRef(props.notice || "")
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!message || message === lastMessageRef.current) return
@@ -193,8 +246,20 @@ export default function LibraryPage(props: {
   templatesRef.current = props.templates
   iconLibrariesRef.current = props.iconLibraries
 
-  const keyword = search.trim().toLowerCase()
-  const groupNameOf = (groupId: string) => (groupsRef.current.find(item => item.id === groupId) || { name: "" }).name
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => setKeyword(search.trim().toLowerCase()), 120)
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [search])
+
+  const groupNames = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const group of props.groups) map.set(group.id, group.name)
+    return map
+  }, [props.groups])
+  const groupNameOf = (groupId: string) => groupNames.get(groupId) || ""
   const matches = (server: LibraryServer) => {
     if (!hasTags(server, tagFilter)) return false
     if (!keyword) return true
@@ -211,15 +276,15 @@ export default function LibraryPage(props: {
       .toLowerCase()
     return haystack.indexOf(keyword) >= 0
   }
-  const tagCounts = allTags(props.servers)
-  const ordered = orderTags(tagCounts, props.settings.tagOrder)
+  const tagCounts = useMemo(() => allTags(props.servers), [props.servers])
+  const ordered = useMemo(() => orderTags(tagCounts, props.settings.tagOrder), [tagCounts, props.settings.tagOrder])
   const countIn = (list: Array<{ tag: string; count: number }>, tag: string) => {
     const key = tag.toLowerCase()
     const found = list.find(item => item.tag.toLowerCase() === key)
     return found ? found.count : 0
   }
-  const tagFacets = allTags(props.servers, tagFilter)
-  const tagOptions = ordered.map(item => ({ tag: item.tag, count: countIn(tagFacets, item.tag) }))
+  const tagFacets = useMemo(() => allTags(props.servers, tagFilter), [props.servers, tagFilter])
+  const tagOptions = useMemo(() => ordered.map(item => ({ tag: item.tag, count: countIn(tagFacets, item.tag) })), [ordered, tagFacets])
   const tagServersOf = (tag: string) => props.servers.filter(item => hasTags(item, [tag]))
   const isTagOn = (list: string[], tag: string) => list.some(item => item.toLowerCase() === tag.toLowerCase())
   const filterTagItems: TagOption[] = tagOptions.map(item => ({
@@ -229,13 +294,14 @@ export default function LibraryPage(props: {
     action: () => (tagEditing ? tapTag(item.tag) : toggleTagFilter(item.tag)),
     longPress: tagEditing ? () => pickTagToSort(item.tag) : undefined,
   }))
-  const batchOn = ordered
+  const pickedSet = useMemo(() => new Set(picked), [picked])
+  const batchOn = useMemo(() => ordered
     .map(item => item.tag)
     .filter(tag => {
-      const inside = tagServersOf(tag)
-      return inside.length > 0 && inside.every(server => picked.indexOf(server.id) >= 0)
-    })
-  const batchFacets = allTags(props.servers, batchOn)
+      const inside = props.servers.filter(item => hasTags(item, [tag]))
+      return inside.length > 0 && inside.every(server => pickedSet.has(server.id))
+    }), [ordered, props.servers, pickedSet])
+  const batchFacets = useMemo(() => allTags(props.servers, batchOn), [props.servers, batchOn])
   const pickTagItems: TagOption[] = ordered.map(item => ({
     label: item.tag,
     count: countIn(batchFacets, item.tag),
@@ -330,12 +396,39 @@ export default function LibraryPage(props: {
       })
       .catch(error => setMessage(`标签改名失败 ${errorText(error)}`))
   }
-  const visible = sortServers(
+  const visible = useMemo(() => sortServers(
     props.servers.filter(matches),
     props.settings.librarySort,
     props.settings.librarySortDesc
-  )
+  ), [props.servers, props.settings.librarySort, props.settings.librarySortDesc, keyword, tagFilter, groupNames])
   const pickedServers = props.servers.filter(server => picked.includes(server.id))
+  const [latencies, setLatencies] = useState<Record<string, LatencyStatus>>({})
+  const visibleIds = visible.map(server => server.id).join(",")
+
+  useEffect(() => {
+    let active = true
+    const run = async () => {
+      // 小批量并发，避免逐条等待导致整页很慢，也避免一次性冲击网络。
+      for (let start = 0; start < visible.length; start += 4) {
+        if (!active) return
+        const batch = visible.slice(start, start + 4)
+        const updates: Record<string, LatencyStatus> = {}
+        await Promise.all(batch.map(async server => {
+          const cached = latencyCache.get(server.address)
+          if (cached && Date.now() - cached.checkedAt < (cached.color === LATENCY_DANGER ? 30000 : 60000)) {
+            updates[server.id] = cached
+            return
+          }
+          const result = await checkLatency(server.address)
+          latencyCache.set(server.address, result)
+          updates[server.id] = result
+        }))
+        if (active && Object.keys(updates).length > 0) setLatencies(current => ({ ...current, ...updates }))
+      }
+    }
+    run().catch(error => console.log("线路延迟检测失败", error))
+    return () => { active = false }
+  }, [visibleIds])
 
   const targetTag =
     props.settings.appId === "custom"
@@ -980,16 +1073,20 @@ export default function LibraryPage(props: {
       .catch(error => setMessage(`打开失败 ${errorText(error)}`))
   }
 
-  const groupSections: Array<{ key: string; title: string; servers: LibraryServer[] }> = []
   const filtering = tagFilter.length > 0 || keyword.length > 0
-  groupSections.push({
-    key: "root",
-    title: ROOT_GROUP_LABEL,
-    servers: visible.filter(server => !props.groups.some(group => group.id === server.groupId)),
-  })
-  for (const group of props.groups) {
-    groupSections.push({ key: group.id, title: group.name, servers: visible.filter(server => server.groupId === group.id) })
-  }
+  const groupSections = useMemo(() => {
+    const groupIds = new Set(props.groups.map(group => group.id))
+    const sections: Array<{ key: string; title: string; servers: LibraryServer[] }> = [
+      { key: "root", title: ROOT_GROUP_LABEL, servers: [] },
+    ]
+    for (const group of props.groups) sections.push({ key: group.id, title: group.name, servers: [] })
+    const sectionMap = new Map(sections.map(section => [section.key, section]))
+    for (const server of visible) {
+      const section = sectionMap.get(groupIds.has(server.groupId) ? server.groupId : "root")
+      if (section) section.servers.push(server)
+    }
+    return sections
+  }, [props.groups, visible])
 
   const results = visible
 
@@ -1015,6 +1112,7 @@ export default function LibraryPage(props: {
         importTitle={`导入 ${appLabel(targetTag)}`}
         onImport={() => importOne(server)}
         onDelete={() => removeServer(server.id)}
+        latency={latencies[server.id]}
       />
     )
   }
